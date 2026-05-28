@@ -2,6 +2,17 @@ from google import genai
 from dotenv import load_dotenv
 import os
 
+import ast
+
+def parse_keywords(raw_text):
+    try:
+        # Gemini returns a Python list as string, eval it safely
+        keywords = ast.literal_eval(raw_text.strip())
+        return keywords
+    except:
+        # fallback: split by comma if list parsing fails
+        return [k.strip().strip('"') for k in raw_text.strip("[]").split(",")]
+
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -41,7 +52,10 @@ if __name__ == "__main__":
             break
         elif user_input.strip():
             print("Extracting keywords...")
-            keywords = get_gemini_response(user_input)
-            print(f"\nKeywords:\n{keywords}")
+            raw_keywords = get_gemini_response(user_input)
+            keywords = parse_keywords(raw_keywords)
+            print(f"\nKeywords extracted: {len(keywords)}")
+            print(keywords)
         else:
             print("Please enter your research context.")
+
