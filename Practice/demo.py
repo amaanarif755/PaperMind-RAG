@@ -13,3 +13,7 @@ similarity = cosine_similarity(v1, v2)
 print(f"Cosine Similarity: {similarity}")
 
 
+v3=[1,2,3,4]
+v4 = [-1,-2,-3,-4]
+similarity = cosine_similarity(v3, v4)
+print(f"Cosine Similarity: {similarity}")
