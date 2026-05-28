@@ -28,4 +28,3 @@ A RAG system that helps researchers find answers from domain-specific papers fet
 ## Setup
 ------------------------------------------------------------------------------------------------------------------------------
 pip install -r requirements.txt
-Add your GEMINI_API_KEY to .env
