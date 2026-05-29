@@ -19,11 +19,15 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 SYSTEM_PROMPT = """
 You are a research keyword extractor for an academic paper scraper.
-Your task is to understand the user research work and create keywords from your understanding.
-Generate atleast 25 keywords for the creation of the list.
-generates the keywords in such a way that those keywords will be used for doanloading the relevant research papers and would help to get the best downloading research papers. 
-Output ONLY a Python list of keyword strings. Nothing else.
-No explanation, no headings, no extra text.
+Understand the user's research topic deeply and generate keywords a researcher
+would actually search for on arXiv.
+
+Rules:
+- Generate at least 25 keywords
+- Keywords should be 2-5 words each
+- Focus on technical terms, not generic phrases
+- Output ONLY a Python list of strings. Nothing else.
+- No explanation, no headings, no extra text.
 
 Example output:
 ["graphene doping machine learning", "formation energy DFT graphene", "SOAP descriptor materials"]
@@ -48,34 +52,37 @@ if __name__ == "__main__":
     print("--- PaperMind Keyword Extractor ---")
 
     while True:
-        user_input = input("\nDescribe your research: ")
+        user_input = input("\nDescribe your research (or type 'exit'): ")
 
         if user_input.lower() in ["exit", "quit"]:
             print("Goodbye!")
             break
 
         elif user_input.strip():
-            print("Extracting keywords...")
+            print("\nExtracting keywords...")
             raw_keywords = get_gemini_response(user_input)
             keywords = parse_keywords(raw_keywords)
             print(f"\nKeywords extracted: {len(keywords)}")
-            print(keywords)
+            for i, kw in enumerate(keywords, 1):
+                print(f"  {i}. {kw}")
 
-            # Step 2: Let user review and add keywords
-            print("\nReview your keywords above.")
-            user_addition = input("Add more keywords (comma separated) or press ENTER to skip: ").strip()
+            # Let user add keywords
+            print("\nReview keywords above.")
+            user_addition = input("Add more (comma separated) or press ENTER to skip: ").strip()
 
-            if user_addition:
+            if user_addition and user_addition.lower() != "enter":
                 extra = [k.strip() for k in user_addition.split(",") if k.strip()]
                 keywords.extend(extra)
-                print(f"\nUpdated list ({len(keywords)} keywords):")
-                print(keywords)
+                print(f"Updated: {len(keywords)} total keywords.")
 
-            # Step 3: Confirm and download
-            confirm = input("\nDownload papers for these keywords? (y/n): ")
+            # Confirm and download
+            confirm = input("\nDownload papers? (y/n): ")
             if confirm.lower() == "y":
-                papers = download_papers(keywords, max_per_keyword=3)
-                print(f"\nPipeline complete. {len(papers)} papers ready.")
+                # Use first 15 keywords only to avoid rate limits
+                search_keywords = keywords[:15]
+                print(f"\nSearching with top {len(search_keywords)} keywords...")
+                papers = download_papers(search_keywords, max_per_keyword=2)
+                print(f"\nPipeline complete. {len(papers)} papers ready for parsing.")
             else:
                 print("Download cancelled.")
 
