@@ -35,6 +35,25 @@ html, body, .stApp {
     color: #e8e3d9 !important;
     font-family: 'Sora', sans-serif !important;
 }
+            
+/* ── Styled History Buttons ── */
+div[data-testid="stSidebar"] .stButton button {
+    background-color: #1e1e1e !important;
+    color: #888 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 10px !important;
+    text-align: left !important;
+    padding: 8px 12px !important;
+    font-size: 0.83rem !important;
+    font-weight: 400 !important;
+}
+
+div[data-testid="stSidebar"] .stButton button:hover {
+    border-color: #444 !important;
+    color: #aaa !important;
+    background-color: #222 !important;
+    transform: none !important;
+}
 
 /* ── Hide Streamlit chrome ── */
 #MainMenu, footer, header { visibility: hidden; }
@@ -361,24 +380,31 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Chat history from memory
+   # Chat history from memory
     st.markdown("**Past Sessions**")
     history = load_memory()
 
     if history:
         # Show last 8 entries
         for entry in reversed(history[-8:]):
-            st.markdown(f"""
-            <div class="history-item">
-                <div style="color:#555;font-size:0.68rem;margin-bottom:3px">{entry['timestamp']} · {entry['topic']}</div>
-                {entry['question'][:60]}{'...' if len(entry['question']) > 60 else ''}
-            </div>
-            """, unsafe_allow_html=True)
+            # Format a clean label for the button
+            short_q = entry['question'][:35] + ('...' if len(entry['question']) > 35 else '')
+            btn_label = f"🕒 {entry['timestamp'][5:10]} | {short_q}"
+            
+            # Create an interactive button for each history item
+            if st.button(btn_label, key=f"hist_btn_{entry['id']}", help=entry['question'], use_container_width=True):
+                # 1. Inject the historical question and answer into active memory
+                st.session_state.messages = [
+                    {"role": "user", "content": entry['question']},
+                    {"role": "assistant", "content": entry['answer'], "sources": entry.get('sources', [])}
+                ]
+                # 2. Restore the topic tag
+                st.session_state.current_topic = entry.get('topic', 'General')
+                # 3. Reload the UI to show the chat
+                st.rerun()
     else:
         st.markdown('<div style="color:#444;font-size:0.82rem">No history yet.</div>',
                     unsafe_allow_html=True)
-
-    st.markdown("---")
 
     # Stats
     if history:
