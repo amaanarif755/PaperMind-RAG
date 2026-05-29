@@ -269,15 +269,19 @@ def retrieve_chunks(query, n_results=5):
     )
     return results
 
-def ask_gemini(query, context):
+def ask_gemini(query, context, chat_history=""):
     gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     prompt = f"""You are PaperMind, a research assistant that answers questions from scientific papers.
 
 Rules:
 - Answer ONLY from the context below
+- Use the CONVERSATION HISTORY to understand references (like "what did you mean by that?")
 - Be precise and cite which paper each fact comes from
 - If not in context, say: "I couldn't find this in the downloaded papers."
 - Format your answer clearly with line breaks
+
+CONVERSATION HISTORY:
+{chat_history}
 
 CONTEXT:
 {context}
@@ -312,7 +316,15 @@ def run_rag(question):
             seen.add(meta["title"])
 
     context = "\n---\n".join(context_parts)
-    answer = ask_gemini(question, context)
+    
+    # Extract Conversation History for follow-ups
+    chat_history_str = ""
+    recent_messages = st.session_state.messages[-4:] # Grab the last 4 exchanges
+    for msg in recent_messages:
+        role = "User" if msg["role"] == "user" else "PaperMind"
+        chat_history_str += f"{role}: {msg['content']}\n"
+
+    answer = ask_gemini(question, context, chat_history_str)
     return answer, sources
 
 # ─────────────────────────────────────────────
