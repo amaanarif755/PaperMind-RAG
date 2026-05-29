@@ -23,7 +23,7 @@ Understand the user's research topic deeply and generate keywords a researcher
 would actually search for on arXiv.
 
 Rules:
-- Generate at least 25 keywords
+- Generate at least 25 keywords relevent for the search of academic papers on arXiv
 - Keywords should be 2-5 words each
 - Focus on technical terms, not generic phrases
 - Output ONLY a Python list of strings. Nothing else.
