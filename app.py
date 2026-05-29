@@ -21,13 +21,12 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────
-# CUSTOM CSS — Claude-inspired dark UI
+# CUSTOM CSS
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── Global Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, .stApp {
@@ -35,31 +34,10 @@ html, body, .stApp {
     color: #e8e3d9 !important;
     font-family: 'Sora', sans-serif !important;
 }
-            
-/* ── Styled History Buttons ── */
-div[data-testid="stSidebar"] .stButton button {
-    background-color: #1e1e1e !important;
-    color: #888 !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 10px !important;
-    text-align: left !important;
-    padding: 8px 12px !important;
-    font-size: 0.83rem !important;
-    font-weight: 400 !important;
-}
 
-div[data-testid="stSidebar"] .stButton button:hover {
-    border-color: #444 !important;
-    color: #aaa !important;
-    background-color: #222 !important;
-    transform: none !important;
-}
-
-/* ── Hide Streamlit chrome ── */
 #MainMenu, footer, header { visibility: hidden; }
 .stDeployButton { display: none; }
 
-/* ── Sidebar ── */
 [data-testid="stSidebar"] {
     background-color: #141414 !important;
     border-right: 1px solid #2a2a2a !important;
@@ -69,14 +47,12 @@ div[data-testid="stSidebar"] .stButton button:hover {
     color: #b0a99e !important;
 }
 
-/* ── Main container ── */
 .main .block-container {
     max-width: 820px !important;
     padding: 2rem 1.5rem !important;
     margin: 0 auto !important;
 }
 
-/* ── Chat messages ── */
 .user-msg {
     background: #2a2a2a;
     border: 1px solid #333;
@@ -107,11 +83,9 @@ div[data-testid="stSidebar"] .stButton button:hover {
     margin-bottom: 8px;
     opacity: 0.5;
 }
-
 .user-label { color: #c4a882; }
-.ai-label { color: #82a8c4; }
+.ai-label   { color: #82a8c4; }
 
-/* ── Source chips ── */
 .source-chip {
     display: inline-block;
     background: #252525;
@@ -124,7 +98,6 @@ div[data-testid="stSidebar"] .stButton button:hover {
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* ── Input area ── */
 .stTextInput input, .stTextArea textarea {
     background: #222 !important;
     border: 1px solid #333 !important;
@@ -139,8 +112,8 @@ div[data-testid="stSidebar"] .stButton button:hover {
     box-shadow: 0 0 0 2px rgba(196,168,130,0.12) !important;
 }
 
-/* ── Buttons ── */
-.stButton button {
+/* ── MAIN area buttons — gold ── */
+section[data-testid="stMain"] .stButton button {
     background: #c4a882 !important;
     color: #1a1a1a !important;
     border: none !important;
@@ -151,15 +124,51 @@ div[data-testid="stSidebar"] .stButton button:hover {
     padding: 10px 22px !important;
     transition: all 0.2s ease !important;
 }
-.stButton button:hover {
+section[data-testid="stMain"] .stButton button:hover {
     background: #d4b892 !important;
     transform: translateY(-1px) !important;
 }
 
-/* ── Dividers ── */
+/* ── SIDEBAR history buttons — dark stealth ── */
+div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"] {
+    background-color: #1e1e1e !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 10px !important;
+    text-align: left !important;
+    padding: 10px 14px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s, background-color 0.15s !important;
+    width: 100% !important;
+    transform: none !important;
+}
+div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"]:hover {
+    border-color: #444444 !important;
+    background-color: #222222 !important;
+    transform: none !important;
+}
+div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"] div[data-testid="stMarkdownContainer"] {
+    color: #a39e93 !important;
+    font-size: 0.82rem !important;
+    font-family: 'Sora', sans-serif !important;
+    font-weight: 400 !important;
+}
+div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"]:hover div[data-testid="stMarkdownContainer"] {
+    color: #ffffff !important;
+}
+div[data-testid="stSidebar"] .element-container {
+    margin-bottom: 2px !important;
+}
+
+/* ── New Chat button stays gold ── */
+div[data-testid="stSidebar"] .stButton button[data-testid="baseButton-primary"] {
+    background: #c4a882 !important;
+    color: #1a1a1a !important;
+    border: none !important;
+    transform: none !important;
+}
+
 hr { border-color: #2a2a2a !important; }
 
-/* ── Metrics ── */
 [data-testid="stMetric"] {
     background: #1e1e1e;
     border: 1px solid #2a2a2a;
@@ -176,21 +185,10 @@ hr { border-color: #2a2a2a !important; }
     font-size: 0.78rem !important;
 }
 
-/* ── Expander ── */
-.streamlit-expanderHeader {
-    background: #1e1e1e !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 10px !important;
-    color: #888 !important;
-    font-size: 0.82rem !important;
-}
-
-/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #141414; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-/* ── Status badge ── */
 .status-ready {
     display: inline-block;
     background: rgba(130,196,130,0.12);
@@ -212,21 +210,6 @@ hr { border-color: #2a2a2a !important; }
     font-size: 0.72rem;
     font-weight: 600;
 }
-
-/* ── History item ── */
-.history-item {
-    background: #1e1e1e;
-    border: 1px solid #2a2a2a;
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    font-size: 0.83rem;
-    color: #888;
-    line-height: 1.4;
-    transition: border-color 0.15s;
-}
-.history-item:hover { border-color: #444; color: #aaa; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -273,11 +256,11 @@ def load_vectorstore():
         client = chromadb.PersistentClient(path="data/vectorstore")
         collection = client.get_collection("papers")
         return collection
-    except:
+    except Exception:
         return None
 
 def retrieve_chunks(query, n_results=5):
-    model = load_model()
+    model      = load_model()
     collection = load_vectorstore()
     if not collection:
         return None
@@ -294,9 +277,9 @@ def ask_gemini(query, context, chat_history=""):
 
 Rules:
 - Answer ONLY from the context below
-- Use the CONVERSATION HISTORY to understand references (like "what did you mean by that?")
+- Use the CONVERSATION HISTORY to understand follow-up references
 - Be precise and cite which paper each fact comes from
-- If not in context, say: "I couldn't find this in the downloaded papers."
+- If the answer is not in the context say: "I couldn't find this in the downloaded papers."
 - Format your answer clearly with line breaks
 
 CONVERSATION HISTORY:
@@ -315,7 +298,7 @@ ANSWER:"""
                 contents=prompt
             )
             return response.text
-        except Exception as e:
+        except Exception:
             if attempt < 2:
                 time.sleep(5)
     return "Error generating response. Please try again."
@@ -326,8 +309,9 @@ def run_rag(question):
         return "Vector store not found. Run the pipeline first.", []
 
     context_parts = []
-    sources = []
-    seen = set()
+    sources       = []
+    seen          = set()
+
     for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
         context_parts.append(f"[{meta['title'][:50]}]\n{doc}")
         if meta["title"] not in seen:
@@ -335,11 +319,9 @@ def run_rag(question):
             seen.add(meta["title"])
 
     context = "\n---\n".join(context_parts)
-    
-    # Extract Conversation History for follow-ups
+
     chat_history_str = ""
-    recent_messages = st.session_state.messages[-4:] # Grab the last 4 exchanges
-    for msg in recent_messages:
+    for msg in st.session_state.messages[-4:]:
         role = "User" if msg["role"] == "user" else "PaperMind"
         chat_history_str += f"{role}: {msg['content']}\n"
 
@@ -361,56 +343,63 @@ with st.sidebar:
     st.markdown("## 🧠 PaperMind")
     st.markdown("---")
 
-    # Vector store status
     collection = load_vectorstore()
     if collection:
         count = collection.count()
-        st.markdown(f'<span class="status-ready">● {count} chunks indexed</span>', unsafe_allow_html=True)
+        st.markdown(
+            f'<span class="status-ready">● {count} chunks indexed</span>',
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown('<span class="status-empty">● No vector store found</span>', unsafe_allow_html=True)
+        st.markdown(
+            '<span class="status-empty">● No vector store found</span>',
+            unsafe_allow_html=True
+        )
 
     st.markdown("<br/>", unsafe_allow_html=True)
 
-    # Topic tag
     st.markdown("**Research Topic**")
-    topic = st.text_input("", value=st.session_state.current_topic,
-                          placeholder="e.g. Graphene doping",
-                          label_visibility="collapsed")
+    topic = st.text_input(
+        "",
+        value=st.session_state.current_topic,
+        placeholder="e.g. Graphene doping",
+        label_visibility="collapsed"
+    )
     st.session_state.current_topic = topic
 
     st.markdown("---")
-
-   # Chat history from memory
     st.markdown("**Past Sessions**")
     history = load_memory()
 
     if history:
-        # Show last 8 entries
         for entry in reversed(history[-8:]):
-            # Format a clean label for the button
-            short_q = entry['question'][:35] + ('...' if len(entry['question']) > 35 else '')
+            short_q   = entry["question"][:35] + ("..." if len(entry["question"]) > 35 else "")
             btn_label = f"🕒 {entry['timestamp'][5:10]} | {short_q}"
-            
-            # Create an interactive button for each history item
-            if st.button(btn_label, key=f"hist_btn_{entry['id']}", help=entry['question'], use_container_width=True):
-                # 1. Inject the historical question and answer into active memory
+
+            if st.button(
+                btn_label,
+                key=f"hist_btn_{entry['id']}",
+                help=entry["question"],
+                use_container_width=True
+            ):
                 st.session_state.messages = [
-                    {"role": "user", "content": entry['question']},
-                    {"role": "assistant", "content": entry['answer'], "sources": entry.get('sources', [])}
+                    {"role": "user",      "content": entry["question"]},
+                    {"role": "assistant", "content": entry["answer"],
+                     "sources": entry.get("sources", [])}
                 ]
-                # 2. Restore the topic tag
-                st.session_state.current_topic = entry.get('topic', 'General')
-                # 3. Reload the UI to show the chat
+                st.session_state.current_topic = entry.get("topic", "General")
                 st.rerun()
     else:
-        st.markdown('<div style="color:#444;font-size:0.82rem">No history yet.</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            '<div style="color:#444;font-size:0.82rem">No history yet.</div>',
+            unsafe_allow_html=True
+        )
 
-    # Stats
+    st.markdown("---")
+
     if history:
         st.metric("Total Questions", len(history))
 
-    # Clear current chat
     if st.button("New Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
@@ -418,8 +407,6 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 # MAIN CHAT AREA
 # ─────────────────────────────────────────────
-
-# Header
 st.markdown("""
 <div style="text-align:center;padding:2rem 0 1.5rem">
     <div style="font-size:2rem;margin-bottom:8px">🧠</div>
@@ -428,7 +415,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Empty state
 if not st.session_state.messages:
     st.markdown("""
     <div style="text-align:center;padding:3rem 0;color:#444">
@@ -439,13 +425,12 @@ if not st.session_state.messages:
         </div>
         <br/>
         <div style="font-size:0.78rem;color:#333">
-            Try: "What methods are used to study graphene doping?" <br/>
+            Try: "What methods are used to study graphene doping?"<br/>
             Or: "Summarize the key findings on formation energy prediction"
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# Render messages
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         st.markdown(f"""
@@ -462,7 +447,7 @@ for msg in st.session_state.messages:
         st.markdown(f"""
         <div class="ai-msg">
             <div class="msg-label ai-label">PaperMind</div>
-            {msg["content"].replace(chr(10), '<br>')}
+            {msg["content"].replace(chr(10), "<br>")}
             <div style="margin-top:12px">{sources_html}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -489,24 +474,19 @@ with col2:
 # PROCESS QUESTION
 # ─────────────────────────────────────────────
 if send and question.strip():
-    # Add user message
     st.session_state.messages.append({
         "role": "user",
         "content": question
     })
 
-    # Run RAG
     with st.spinner("Searching papers..."):
         answer, sources = run_rag(question)
 
-    # Add AI message
     st.session_state.messages.append({
         "role": "assistant",
         "content": answer,
         "sources": sources
     })
 
-    # Save to persistent memory
     add_to_memory(question, answer, sources, st.session_state.current_topic)
-
     st.rerun()
