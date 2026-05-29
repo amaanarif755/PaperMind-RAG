@@ -47,7 +47,7 @@ def clean_text(text):
     text = re.sub(r'\n{3,}', '\n\n', text)
 
     # Remove URLs (not DOIs)
-    text = re.sub(r'http[s]?://(?!doi)\\S+', '', text)
+    text = re.sub(r'http[s]?://(?!doi)\S+', '', text)
 
     return text.strip()
 
@@ -56,7 +56,7 @@ def chunk_by_section(text, chunk_size=1000, overlap=100):
     Split text into chunks.
     Strategy: split by markdown headers first (sections),
     then split large sections by character count with overlap.
-    Overlap ensures context isn't lost at chunk boundaries.
+    Injects section headers into continuing sub-chunks to preserve context.
     """
     chunks = []
 
@@ -67,33 +67,45 @@ def chunk_by_section(text, chunk_size=1000, overlap=100):
         if not section.strip():
             continue
 
-        # If section fits in one chunk
+        # --- EXTRACT HEADER CONTEXT ---
+        # Capture the markdown heading (e.g., "## 3. Methodology") to inject into child chunks
+        header_match = re.match(r'^(#{1,3}\s[^\n]+)', section)
+        header_context = header_match.group(1) + "\n[Context Continued]... " if header_match else ""
+
         if len(section) <= chunk_size:
             chunks.append(section.strip())
         else:
-            # Split large sections with overlap
             words = section.split()
             current_chunk = []
-            current_length = 0
+            # Account for the header length inside the chunk size target
+            current_length = len(header_context)
 
             for word in words:
                 current_chunk.append(word)
                 current_length += len(word) + 1
 
                 if current_length >= chunk_size:
-                    chunks.append(" ".join(current_chunk))
-                    # Keep last N words as overlap
-                    overlap_words = current_chunk[-overlap//5:]
+                    # Prepend structural context before appending chunk text
+                    chunk_text = header_context + " ".join(current_chunk)
+                    chunks.append(chunk_text.strip())
+                    
+                    # Sliding window overlap calculation
+                    overlap_words = current_chunk[-max(1, overlap//5):]
                     current_chunk = overlap_words
-                    current_length = sum(len(w) + 1 for w in overlap_words)
+                    current_length = len(header_context) + sum(len(w) + 1 for w in overlap_words)
 
-            if current_chunk:
-                chunks.append(" ".join(current_chunk))
+            if current_chunk and len(current_chunk) > (overlap//5):
+                chunk_text = header_context + " ".join(current_chunk)
+                chunks.append(chunk_text.strip())
 
     return chunks
 
 def parse_all_papers(save_dir="data/papers"):
     metadata_path = os.path.join(save_dir, "papers_metadata.json")
+
+    if not os.path.exists(metadata_path):
+        print(f"❌ Metadata file not found at {metadata_path}. Please run Stage 1 & 2 first.")
+        return []
 
     with open(metadata_path, "r") as f:
         papers = json.load(f)
@@ -106,7 +118,7 @@ def parse_all_papers(save_dir="data/papers"):
         if not os.path.exists(paper["local_path"]):
             continue
 
-        print(f"\nParsing: {paper['title'][:60]}")
+        print(f"\nParsing: {paper['title'][:60]}...")
 
         # Extract
         raw_text = extract_text_markdown(paper["local_path"])
