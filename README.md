@@ -13,6 +13,10 @@
 
 <br/>
 
+
+Added Few Research Content
+
+<br/>
 > **Describe your research → auto-fetch papers → ask questions → get cited answers.**
 >
 > PaperMind is an end-to-end RAG pipeline built from scratch. It fetches domain-specific research papers from arXiv, parses and chunks them intelligently, embeds them into a vector store, and answers your questions — grounded in real papers, not hallucinations. Built with a persistent memory layer and a clean chat UI.
