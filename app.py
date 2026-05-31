@@ -130,7 +130,7 @@ section[data-testid="stMain"] .stButton button:hover {
 }
 
 /* ── SIDEBAR history buttons — dark stealth ── */
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"] {
+div[data-testid="stSidebar"] button[data-testid="baseButton-secondary"] {
     background-color: #1e1e1e !important;
     border: 1px solid #2a2a2a !important;
     border-radius: 10px !important;
@@ -139,20 +139,18 @@ div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-test
     box-shadow: none !important;
     transition: border-color 0.15s, background-color 0.15s !important;
     width: 100% !important;
-    transform: none !important;
 }
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"]:hover {
+div[data-testid="stSidebar"] button[data-testid="baseButton-secondary"]:hover {
     border-color: #444444 !important;
     background-color: #222222 !important;
-    transform: none !important;
 }
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"] div[data-testid="stMarkdownContainer"] {
+div[data-testid="stSidebar"] button[data-testid="baseButton-secondary"] div[data-testid="stMarkdownContainer"] {
     color: #a39e93 !important;
     font-size: 0.82rem !important;
     font-family: 'Sora', sans-serif !important;
     font-weight: 400 !important;
 }
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[data-testid="baseButton-secondary"]:hover div[data-testid="stMarkdownContainer"] {
+div[data-testid="stSidebar"] button[data-testid="baseButton-secondary"]:hover div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }
 div[data-testid="stSidebar"] .element-container {
@@ -160,11 +158,10 @@ div[data-testid="stSidebar"] .element-container {
 }
 
 /* ── New Chat button stays gold ── */
-div[data-testid="stSidebar"] .stButton button[data-testid="baseButton-primary"] {
+div[data-testid="stSidebar"] button[data-testid="baseButton-primary"] {
     background: #c4a882 !important;
     color: #1a1a1a !important;
     border: none !important;
-    transform: none !important;
 }
 
 hr { border-color: #2a2a2a !important; }
@@ -222,7 +219,10 @@ def load_memory():
     os.makedirs("data/memory", exist_ok=True)
     if os.path.exists(MEMORY_FILE):
         with open(MEMORY_FILE, "r") as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
     return []
 
 def save_memory(history):
@@ -259,10 +259,17 @@ def load_vectorstore():
     except Exception:
         return None
 
+@st.cache_resource
+def get_gemini_client():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        st.error("Missing Gemini API Key. Check your .env file setup.")
+    return genai.Client(api_key=api_key)
+
 def retrieve_chunks(query, n_results=5):
-    model      = load_model()
+    model = load_model()
     collection = load_vectorstore()
-    if not collection:
+    if collection is None:
         return None
     query_embedding = model.encode([query]).tolist()
     results = collection.query(
@@ -272,7 +279,7 @@ def retrieve_chunks(query, n_results=5):
     return results
 
 def ask_gemini(query, context, chat_history=""):
-    gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    gemini_client = get_gemini_client()
     prompt = f"""You are PaperMind, a research assistant that answers questions from scientific papers.
 
 Rules:
@@ -291,26 +298,30 @@ CONTEXT:
 QUESTION: {query}
 
 ANSWER:"""
+    
     for attempt in range(3):
         try:
             response = gemini_client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt
             )
-            return response.text
-        except Exception:
+            if response and response.text:
+                return response.text
+        except Exception as e:
             if attempt < 2:
-                time.sleep(5)
+                time.sleep(2)
+            else:
+                return f"Error connecting to model interface layer: {str(e)}"
     return "Error generating response. Please try again."
 
 def run_rag(question):
     results = retrieve_chunks(question, n_results=5)
-    if not results:
-        return "Vector store not found. Run the pipeline first.", []
+    if not results or not results.get("documents") or len(results["documents"][0]) == 0:
+        return "Vector store chunks not found matching query parameters. Check if your documents have been processed.", []
 
     context_parts = []
-    sources       = []
-    seen          = set()
+    sources = []
+    seen = set()
 
     for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
         context_parts.append(f"[{meta['title'][:50]}]\n{doc}")
@@ -373,7 +384,7 @@ with st.sidebar:
 
     if history:
         for entry in reversed(history[-8:]):
-            short_q   = entry["question"][:35] + ("..." if len(entry["question"]) > 35 else "")
+            short_q = entry["question"][:35] + ("..." if len(entry["question"]) > 35 else "")
             btn_label = f"🕒 {entry['timestamp'][5:10]} | {short_q}"
 
             if st.button(
@@ -383,9 +394,8 @@ with st.sidebar:
                 use_container_width=True
             ):
                 st.session_state.messages = [
-                    {"role": "user",      "content": entry["question"]},
-                    {"role": "assistant", "content": entry["answer"],
-                     "sources": entry.get("sources", [])}
+                    {"role": "user", "content": entry["question"]},
+                    {"role": "assistant", "content": entry["answer"], "sources": entry.get("sources", [])}
                 ]
                 st.session_state.current_topic = entry.get("topic", "General")
                 st.rerun()
@@ -400,7 +410,7 @@ with st.sidebar:
     if history:
         st.metric("Total Questions", len(history))
 
-    if st.button("New Chat", use_container_width=True):
+    if st.button("New Chat", use_container_width=True, key="new_chat_btn"):
         st.session_state.messages = []
         st.rerun()
 
@@ -442,6 +452,7 @@ for msg in st.session_state.messages:
     else:
         sources_html = "".join([
             f'<span class="source-chip">📄 {s[:45]}</span>'
+            # Fallback to get keys safely if sources structure is modified
             for s in msg.get("sources", [])
         ])
         st.markdown(f"""
@@ -453,32 +464,30 @@ for msg in st.session_state.messages:
         """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# INPUT
+# INPUT FORM LOOP (Handles Enter-Key Submission)
 # ─────────────────────────────────────────────
 st.markdown("<br/>", unsafe_allow_html=True)
 
-col1, col2 = st.columns([6, 1])
+with st.form(key="chat_form", clear_on_submit=True):
+    col1, col2 = st.columns([6, 1])
+    with col1:
+        question = st.text_input(
+            "",
+            placeholder="Ask a question about your papers...",
+            label_visibility="collapsed",
+            key="question_input"
+        )
+    with col2:
+        send = st.form_submit_button("Ask →", use_container_width=True)
 
-with col1:
-    question = st.text_input(
-        "",
-        placeholder="Ask a question about your papers...",
-        label_visibility="collapsed",
-        key="question_input"
-    )
-
-with col2:
-    send = st.button("Ask →", use_container_width=True)
-
-# ─────────────────────────────────────────────
-# PROCESS QUESTION
-# ─────────────────────────────────────────────
 if send and question.strip():
+    # Append user question to prompt tracking history
     st.session_state.messages.append({
         "role": "user",
         "content": question
     })
-
+    
+    # Process retrieval loops directly
     with st.spinner("Searching papers..."):
         answer, sources = run_rag(question)
 
